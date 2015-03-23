@@ -1,0 +1,4 @@
+<resources>
+    <string name="info">This is a production build configuration! All requests will be made to:</string>
+    <string name="title_activity_main">Grapple PROD</string>
+</resources>

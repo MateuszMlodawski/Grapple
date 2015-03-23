@@ -1,0 +1,8 @@
+// Committing the passwords of your release key and keystore is not a good security practice,
+// that's why they are placed in a separate file which should NOT be committed.
+ext.signing = [
+        storeFilePath : '../keystore_production.jks',
+        storePassword : 'android',
+        keyAlias      : 'grapple',
+        keyPassword   : 'android',
+]

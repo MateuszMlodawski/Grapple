@@ -1,0 +1,99 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        applicationId "com.mmlodawski.grapple"
+        minSdkVersion 14
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+
+    if (file('signing.gradle').exists()) {
+        apply from: 'signing.gradle'
+    }
+
+    signingConfigs {
+        production {
+            storeFile file(project.signing.storeFilePath)
+            storePassword project.signing.storePassword
+            keyAlias project.signing.keyAlias
+            keyPassword project.signing.keyPassword
+        }
+
+        debug {
+            storeFile file("../keystore_debug.jks")
+            storePassword "android"
+            keyAlias "grapple"
+            keyPassword "android"
+        }
+    }
+
+    buildTypes {
+        def APK_DIR = rootDir.path + "/apks/"
+
+        def BOOLEAN = "boolean"
+        def TRUE = "true"
+        def FALSE = "false"
+        def LOG_HTTP_REQUESTS = "LOG_HTTP_REQUESTS"
+
+        ext.setOutputFileName = { buildTypeName ->
+            applicationVariants.all { variant ->
+                if (variant.buildType.name.equals(buildTypeName)) {
+                    variant.outputs.each { output ->
+                        output.outputFile = new File(
+                                APK_DIR + buildTypeName,
+                                // Rename the output file to
+                                // <root-project-name>-v.<version-name>-<build-type>.apk
+                                output.outputFile.name.replace(
+                                        "app-" + buildTypeName,
+                                        rootProject.name + "-v." + defaultConfig.versionName + "-" + buildTypeName
+                                )
+                        )
+                    }
+                }
+            }
+        }
+
+        debug {
+            def BUILD_TYPE_NAME = "develop"
+            buildConfigField BOOLEAN, LOG_HTTP_REQUESTS, TRUE
+            debuggable true
+            applicationIdSuffix "." + BUILD_TYPE_NAME
+            versionNameSuffix "-" + BUILD_TYPE_NAME
+            signingConfig signingConfigs.production
+
+            setOutputFileName(BUILD_TYPE_NAME)
+        }
+
+        production {
+            def BUILD_TYPE_NAME = "production"
+            buildConfigField BOOLEAN, LOG_HTTP_REQUESTS, TRUE
+            applicationIdSuffix "." + BUILD_TYPE_NAME
+            versionNameSuffix "-" + BUILD_TYPE_NAME
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.production
+
+            setOutputFileName(BUILD_TYPE_NAME)
+        }
+
+        release {
+            def BUILD_TYPE_NAME = "release"
+            buildConfigField BOOLEAN, LOG_HTTP_REQUESTS, FALSE
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.production
+
+            setOutputFileName(BUILD_TYPE_NAME)
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:21.0.3'
+}
